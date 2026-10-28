@@ -1,0 +1,40 @@
+# Context Rot Firewall — Configuration
+# All tunable parameters are here. No hardcoded values in source files.
+
+llm:
+  ollama_url: "http://localhost:11434"
+  ollama_model: "llama3.2:3b"      # Change to qwen2.5:7b for better quality
+  temperature: 0.2
+  timeout_seconds: 120
+
+context:
+  token_budget: 4096               # Max tokens sent to LLM per turn
+  # budget_pressure_ratio: when used_tokens / token_budget exceeds this, be more aggressive
+  budget_pressure_ratio: 0.80
+  protected_roles:                 # These message roles are NEVER evicted
+    - "system"
+
+relevance:
+  embedding_model: "all-MiniLM-L6-v2"
+  high_threshold: 0.75             # score >= this → KEEP
+  low_threshold: 0.40              # score < this → ARCHIVE; between → COMPRESS
+  llm_judge_enabled: true          # Enable Tier-2 LLM scoring for borderline chunks
+  top_k_retrieval: 3               # Max chunks to retrieve from cold storage per turn
+
+storage:
+  chroma_persist_dir: "./chroma_db"
+  archive_dir: "./archive"
+  log_dir: "./logs"
+
+evaluation:
+  configs:                         # Named configs for benchmark
+    - baseline
+    - simple_compaction
+    - fixed_relevance
+    - adaptive
+  metrics:
+    - task_success_rate
+    - tokens_consumed
+    - compression_ratio
+    - latency_ms
+    - retrieval_accuracy
